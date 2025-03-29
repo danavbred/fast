@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fasting Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Changed from center to avoid scrolling */
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .input-section {
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out, margin-bottom 0.3s ease-out;
+            max-height: 200px;
+            opacity: 1;
+            overflow: hidden;
+        }
+        .input-section.hidden {
+            max-height: 0;
+            opacity: 0;
+            margin-bottom: 0;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #666;
+            text-align: left;
+        }
+        .input-field {
+            width: 100%;
+            padding: 12px; /* Increased for better touch targets */
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 16px;
+        }
+        .progress-container {
+            position: relative;
+            width: 180px; /* Slightly smaller for mobile */
+            height: 180px;
+            margin: 0 auto 20px;
+        }
+        .progress-circle {
+            transform: rotate(-90deg);
+            transform-origin: center;
+            width: 100%;
+            height: 100%;
+        }
+        .progress-background {
+            fill: none;
+            stroke: #f0f0f0;
+            stroke-width: 12;
+        }
+        .progress-bar {
+            fill: none;
+            stroke: #007bff;
+            stroke-width: 12;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s;
+        }
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .timer-display {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        .timer-box {
+            background-color: #f9f9f9;
+            border-radius: 15px;
+            padding: 12px;
+            width: 48%;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .timer-value {
+            font-size: 2em; /* Slightly smaller for mobile */
+            font-weight: bold;
+            color: #333;
+        }
+        .timer-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        #startButton {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 15px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #startButton:hover {
+            background-color: #0056b3;
+        }
+        #startButton:active {
+            transform: scale(0.98);
+        }
+        #startButton.ending {
+            background-color: #dc3545;
+        }
+        #extraTime {
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+        .history-section {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+        .history-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5px;
+        }
+        .history-entry {
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            text-align: left;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .history-entry:active {
+            background-color: #f0f0f0;
+        }
+        .history-date {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9em;
+        }
+        .history-duration {
+            color: #666;
+            margin-top: 5px;
+            font-size: 0.9em;
+        }
+        .total-hours {
+            font-size: 14px;
+            color: #007bff;
+            font-weight: bold;
+        }
+        /* Fix for iOS date inputs */
+        input[type="datetime-local"] {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-section" id="inputSection">
+            <div class="input-group">
+                <label for="fastDuration">Fasting Duration (hours)</label>
+                <input 
+                    type="number" 
+                    id="fastDuration" 
+                    class="input-field"
+                    placeholder="Enter fasting hours" 
+                    min="1" 
+                    max="72" 
+                    step="0.5"
+                >
+            </div>
+            <div class="input-group">
+                <label for="startTimeInput">Start Time</label>
+                <input 
+                    type="datetime-local" 
+                    id="startTimeInput" 
+                    class="input-field"
+                >
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <svg width="180" height="180" class="progress-circle">
+                <circle cx="90" cy="90" r="75" class="progress-background"/>
+                <circle cx="90" cy="90" r="75" class="progress-bar" id="progressBar"/>
+            </svg>
+            <div class="progress-text" id="progressText">0%</div>
+        </div>
+        
+        <div class="timer-display">
+            <div class="timer-box">
+                <div id="elapsedTime" class="timer-value">00:00</div>
+                <div class="timer-label">Elapsed</div>
+            </div>
+            <div class="timer-box">
+                <div id="remainingTime" class="timer-value">00:00</div>
+                <div class="timer-label">Remaining</div>
+            </div>
+        </div>
+        <button id="startButton">Start Fast</button>
+        <div id="extraTime"></div>
+        
+        <div class="history-section">
+            <div class="history-title">
+                <span>Fasting History</span>
+                <span class="total-hours" id="totalHours">Total: 0 hours</span>
+            </div>
+            <div id="historyContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const fastDurationInput = document.getElementById('fastDuration');
+        const startTimeInput = document.getElementById('startTimeInput');
+        const elapsedTimeDisplay = document.getElementById('elapsedTime');
+        const remainingTimeDisplay = document.getElementById('remainingTime');
+        const startButton = document.getElementById('startButton');
+        const extraTimeDisplay = document.getElementById('extraTime');
+        const historyContainer = document.getElementById('historyContainer');
+        const totalHoursDisplay = document.getElementById('totalHours');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const inputSection = document.getElementById('inputSection');
+
+        let startTime = 0;
+        let totalFastDuration = 0;
+        let timerInterval = null;
+        let history = JSON.parse(localStorage.getItem('fastingHistory')) || [];
+
+        // Set up the progress bar
+        const CIRCUMFERENCE = 2 * Math.PI * 75; // Updated for new circle radius
+        progressBar.style.strokeDasharray = CIRCUMFERENCE;
+        progressBar.style.strokeDashoffset = 0;
+
+        function setCurrentStartTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            startTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        setCurrentStartTime();
+
+        function formatTime(totalMinutes) {
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = Math.floor(totalMinutes % 60);
+            return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        function updateProgress(elapsedHours) {
+            const percentage = Math.min(elapsedHours / totalFastDuration, 1) * 100;
+            const remaining = 100 - percentage;
+            
+            const offset = (remaining / 100) * CIRCUMFERENCE;
+            progressBar.style.strokeDashoffset = offset;
+            
+            progressText.textContent = `${Math.round(percentage)}%`;
+        }
+
+        function updateTimer() {
+            const currentTime = Date.now();
+            const elapsedSeconds = Math.floor((currentTime - startTime) / 1000);
+            const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+            const elapsedHours = elapsedSeconds / 3600;
+            
+            const targetSeconds = Math.floor(totalFastDuration * 3600);
+            const remainingSeconds = Math.max(targetSeconds - elapsedSeconds, 0);
+            const remainingMinutes = Math.floor(remainingSeconds / 60);
+
+            elapsedTimeDisplay.textContent = formatTime(elapsedMinutes);
+            remainingTimeDisplay.textContent = formatTime(remainingMinutes);
+            
+            updateProgress(elapsedHours);
+
+            if (elapsedHours > totalFastDuration) {
+                const extraHours = elapsedHours - totalFastDuration;
+                extraTimeDisplay.textContent = `Extra time: ${extraHours.toFixed(1)} hours`;
+                progressText.textContent = `100%+`;
+            } else {
+                extraTimeDisplay.textContent = '';
+            }
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        }
+
+        function saveFastingSession(startTimestamp, endTimestamp, duration) {
+            const session = {
+                id: Date.now(),
+                startTime: startTimestamp,
+                endTime: endTimestamp,
+                duration: duration
+            };
+            
+            history.push(session);
+            localStorage.setItem('fastingHistory', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyContainer.innerHTML = '';
+            let totalHours = 0;
+            
+            if (history.length === 0) {
+                historyContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No fasting sessions yet</div>';
+            } else {
+                history.forEach(session => {
+                    const entry = document.createElement('div');
+                    entry.className = 'history-entry';
+                    entry.setAttribute('data-id', session.id);
+                    
+                    const dateElem = document.createElement('div');
+                    dateElem.className = 'history-date';
+                    dateElem.textContent = formatDate(session.endTime);
+                    
+                    const durationElem = document.createElement('div');
+                    durationElem.className = 'history-duration';
+                    durationElem.textContent = `Fasted for ${session.duration.toFixed(1)} hours`;
+                    
+                    entry.appendChild(dateElem);
+                    entry.appendChild(durationElem);
+                    
+                    let clickCount = 0;
+                    let clickTimer;
+                    
+                    entry.addEventListener('click', function() {
+                        clickCount++;
+                        
+                        if (clickCount === 1) {
+                            clickTimer = setTimeout(() => {
+                                clickCount = 0;
+                            }, 400);
+                        } else if (clickCount === 3) {
+                            clearTimeout(clickTimer);
+                            clickCount = 0;
+                            
+                            history = history.filter(item => item.id !== session.id);
+                            localStorage.setItem('fastingHistory', JSON.stringify(history));
+                            renderHistory();
+                        }
+                    });
+                    
+                    historyContainer.appendChild(entry);
+                    
+                    if (session && typeof session.duration === 'number') {
+                        totalHours += session.duration;
+                    }
+                });
+            }
+            
+            totalHoursDisplay.textContent = `Total: ${totalHours.toFixed(1)} hours`;
+        }
+
+        startButton.addEventListener('click', function() {
+            if (!timerInterval) {
+                totalFastDuration = parseFloat(fastDurationInput.value);
+                if (isNaN(totalFastDuration) || totalFastDuration <= 0) {
+                    alert('Please enter a valid fasting duration');
+                    return;
+                }
+                
+                const selectedStartTime = new Date(startTimeInput.value).getTime();
+                if (isNaN(selectedStartTime)) {
+                    alert('Please select a valid start time');
+                    return;
+                }
+                
+                startTime = selectedStartTime;
+                timerInterval = setInterval(updateTimer, 1000);
+                updateTimer();
+                
+                startButton.textContent = 'End Fast';
+                startButton.classList.add('ending');
+                inputSection.classList.add('hidden');
+                fastDurationInput.disabled = true;
+                startTimeInput.disabled = true;
+            } else {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                
+                const endTime = Date.now();
+                const actualDuration = (endTime - startTime) / (1000 * 60 * 60);
+                
+                saveFastingSession(startTime, endTime, actualDuration);
+                
+                startButton.textContent = 'Start Fast';
+                startButton.classList.remove('ending');
+                inputSection.classList.remove('hidden');
+                fastDurationInput.disabled = false;
+                startTimeInput.disabled = false;
+                elapsedTimeDisplay.textContent = '00:00';
+                remainingTimeDisplay.textContent = '00:00';
+                extraTimeDisplay.textContent = '';
+                progressBar.style.strokeDashoffset = 0;
+                progressText.textContent = '0%';
+                
+                setCurrentStartTime();
+            }
+        });
+        
+        renderHistory();
+    </script>
+</body>
+</html>
