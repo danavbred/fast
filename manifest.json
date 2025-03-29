@@ -1,11 +1,14 @@
 {
     "name": "Fasting Tracker",
     "short_name": "Fast",
-    "start_url": "index.html",
+    "description": "Track your fasting periods",
+    "start_url": "./",
+    "id": "/fast/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#007bff",
     "orientation": "portrait",
+    "scope": "/fast/",
     "icons": [
         {
             "src": "icon-192.png",
